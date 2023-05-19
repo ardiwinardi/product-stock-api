@@ -36,6 +36,10 @@ export class UsersService {
     return this.userModel.findById(id).exec();
   }
 
+  findByUsername(username: string): Promise<User> {
+    return this.userModel.findOne({ username });
+  }
+
   update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
     const item = this.userModel.findByIdAndUpdate(id, {
       username: updateUserDto.username,
