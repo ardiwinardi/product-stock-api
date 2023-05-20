@@ -4,18 +4,19 @@ import * as bcrypt from "bcrypt";
 import { Model } from "mongoose";
 import { CreateUserDto } from "./dto/create-user.dto";
 import { UpdateUserDto } from "./dto/update-user.dto";
+import { UserEntity } from "./entities/user.entity";
 import { User } from "./schemas/user.schema";
 
 @Injectable()
 export class UsersService {
   constructor(@InjectModel(User.name) private userModel: Model<User>) {}
 
-  async create(createUserDto: CreateUserDto): Promise<User> {
-    const item = await this.userModel
+  async create(createUserDto: CreateUserDto) {
+    const itemIsExist = await this.userModel
       .findOne({ username: createUserDto.username })
       .exec();
 
-    if (item) throw new HttpException("User already exists", 409);
+    if (itemIsExist) throw new HttpException("User already exists", 409);
 
     const createduser = new this.userModel({
       username: createUserDto.username,
@@ -25,32 +26,36 @@ export class UsersService {
       ),
     });
 
-    return createduser.save();
+    const item = await createduser.save();
+    return new UserEntity(item);
   }
 
-  findAll(): Promise<User[]> {
-    return this.userModel.find().exec();
+  async findAll() {
+    const items = await this.userModel.find().exec();
+    return items.map((item) => new UserEntity(item));
   }
 
-  findOne(id: string): Promise<User> {
-    return this.userModel.findById(id).exec();
+  async findOne(id: string) {
+    const item = await this.userModel.findById(id).exec();
+    return new UserEntity(item);
   }
 
-  findByUsername(username: string): Promise<User> {
-    return this.userModel.findOne({ username });
+  async findByUsername(username: string) {
+    const item = await this.userModel.findOne({ username });
+    return new UserEntity(item);
   }
 
-  update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
-    const item = this.userModel.findByIdAndUpdate(id, {
+  async update(id: string, updateUserDto: UpdateUserDto) {
+    const item = await this.userModel.findByIdAndUpdate(id, {
       username: updateUserDto.username,
     });
     if (!item) throw new NotFoundException();
-    return item;
+    return new UserEntity(item);
   }
 
-  remove(id: string) {
-    const item = this.userModel.findByIdAndRemove(id);
+  async remove(id: string) {
+    const item = await this.userModel.findByIdAndRemove(id);
     if (!item) throw new NotFoundException();
-    return item;
+    return new UserEntity(item);
   }
 }
