@@ -1,3 +1,4 @@
+import { PageOptionsDto } from "@/common/dtos/page-option.dto";
 import { ParseObjectIdPipe } from "@/common/pipes/parse-object-id.pipe";
 import {
   Body,
@@ -7,6 +8,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { CreateProductDto } from "./dto/create-product.dto";
@@ -26,8 +28,8 @@ export class ProductsController {
   }
 
   @Get()
-  findAll() {
-    return this.productsService.findAll();
+  findAll(@Query() pageOptionsDto: PageOptionsDto) {
+    return this.productsService.findAll(pageOptionsDto);
   }
 
   @Get(":id")

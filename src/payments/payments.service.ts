@@ -1,4 +1,8 @@
+import { Order } from "@/common/constants/order.constant";
+import { PageOptionsDto } from "@/common/dtos/page-option.dto";
+import { PageEntity } from "@/common/entities/page.entity";
 import { ProductStocksService } from "@/product-stocks/product-stocks.service";
+import { PurchaseOrderStatus } from "@/purchase-orders/constants/purchase-order.constant";
 import { PurchaseOrdersService } from "@/purchase-orders/purchase-orders.service";
 import { HttpException, Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
@@ -58,7 +62,7 @@ export class PaymentsService {
         // update purchase order status
         this.purchaseOrderService.updateStatus(purchaseOrder.id, {
           paymentId: item._id,
-          status: "PAID",
+          status: PurchaseOrderStatus.PAID,
         });
       }
 
@@ -68,9 +72,25 @@ export class PaymentsService {
     }
   }
 
-  async findAll() {
-    const items = await this.paymentModel.find().exec();
-    return items.map((item) => new PaymentEntity(item));
+  async findAll(pageOptionsDto: PageOptionsDto) {
+    const items = await this.paymentModel
+      .find()
+      .sort({
+        [`${pageOptionsDto.orderBy}`]:
+          pageOptionsDto.order === Order.ASC ? 1 : -1,
+      })
+      .skip(pageOptionsDto.skip)
+      .limit(pageOptionsDto.limit)
+      .exec();
+
+    const data = items.map((item) => new PaymentEntity(item));
+    const itemCount = await this.paymentModel.find().count();
+
+    return new PageEntity({
+      data,
+      itemCount,
+      pageOptionsDto,
+    });
   }
 
   async findOne(id: string) {

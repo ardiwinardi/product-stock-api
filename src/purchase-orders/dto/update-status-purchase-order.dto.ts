@@ -1,16 +1,17 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiPropertyOptional } from "@nestjs/swagger";
 import { IsEnum, IsOptional, IsString } from "class-validator";
 import { PurchaseOrderStatus } from "../constants/purchase-order.constant";
 
 export class UpdateStatusPurchaseOrderDto {
-  @ApiProperty({
-    type: String,
+  @ApiPropertyOptional({
+    enum: PurchaseOrderStatus,
+    default: PurchaseOrderStatus.IN_PROGRESS,
   })
-  @IsString()
   @IsEnum(PurchaseOrderStatus)
-  status: keyof typeof PurchaseOrderStatus;
+  @IsOptional()
+  status?: PurchaseOrderStatus = PurchaseOrderStatus.IN_PROGRESS;
 
-  @ApiProperty({ required: false })
+  @ApiPropertyOptional()
   @IsString()
   @IsOptional()
   paymentId?: string;

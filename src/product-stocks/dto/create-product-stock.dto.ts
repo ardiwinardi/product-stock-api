@@ -1,4 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { IsMongoId, IsNumber, IsOptional, IsString } from "class-validator";
 
 export class CreateProductStockDto {
@@ -6,9 +6,9 @@ export class CreateProductStockDto {
   @IsMongoId()
   productId: string;
 
-  @ApiProperty({ required: false })
-  @IsOptional()
+  @ApiPropertyOptional()
   @IsMongoId()
+  @IsOptional()
   poId?: string;
 
   @ApiProperty()

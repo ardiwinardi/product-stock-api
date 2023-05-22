@@ -1,3 +1,7 @@
+import { Order } from "@/common/constants/order.constant";
+
+import { PageOptionsDto } from "@/common/dtos/page-option.dto";
+import { PageEntity } from "@/common/entities/page.entity";
 import { ProductsService } from "@/products/products.service";
 import { UserEntity } from "@/users/entities/user.entity";
 import { UsersService } from "@/users/users.service";
@@ -6,6 +10,7 @@ import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { PurchaseOrderStatus } from "./constants/purchase-order.constant";
 import { CreatePurchaseOrderDto } from "./dto/create-purchase-order.dto";
+import { FindAllPurchaseOrderDto } from "./dto/find-all-purchase-order.dto";
 import { UpdatePurchaseOrderDto } from "./dto/update-purchase-order.dto";
 import { UpdateStatusPurchaseOrderDto } from "./dto/update-status-purchase-order.dto";
 import { PurchaseOrderProductEntity } from "./entities/purchase-order-product.entity";
@@ -50,9 +55,39 @@ export class PurchaseOrdersService {
     return new PurchaseOrderEntity(item);
   }
 
-  async findAll() {
-    const items = await this.purchaseOrderModel.find().exec();
-    return items.map((item) => new PurchaseOrderEntity(item));
+  async findAll(
+    pageOptionsDto: PageOptionsDto,
+    findAllPurchaseOrderDto: FindAllPurchaseOrderDto
+  ) {
+    let query = {};
+    if (findAllPurchaseOrderDto.dateFrom && findAllPurchaseOrderDto.dateTo) {
+      const { dateFrom, dateTo } = findAllPurchaseOrderDto;
+      query = {
+        createdAt: {
+          $gte: new Date(new Date(dateFrom).setHours(0, 0, 0)),
+          $lt: new Date(new Date(dateTo).setHours(23, 59, 59)),
+        },
+      };
+    }
+
+    const items = await this.purchaseOrderModel
+      .find(query)
+      .sort({
+        [`${pageOptionsDto.orderBy}`]:
+          pageOptionsDto.order === Order.ASC ? 1 : -1,
+      })
+      .skip(pageOptionsDto.skip)
+      .limit(pageOptionsDto.limit)
+      .exec();
+
+    const data = items.map((item) => new PurchaseOrderEntity(item));
+    const itemCount = await this.purchaseOrderModel.find(query).count();
+
+    return new PageEntity({
+      data,
+      itemCount,
+      pageOptionsDto,
+    });
   }
 
   async findOne(
@@ -108,9 +143,9 @@ export class PurchaseOrdersService {
     let canceledAt = undefined;
     let paidAt = undefined;
 
-    if (status === "PAID") {
+    if (status === PurchaseOrderStatus.PAID) {
       paidAt = new Date();
-    } else if (status === "CANCELED") {
+    } else if (status === PurchaseOrderStatus.CANCELED) {
       canceledAt = new Date();
     }
 

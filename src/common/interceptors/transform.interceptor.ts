@@ -21,11 +21,22 @@ export class TransformInterceptor implements NestInterceptor {
     next: CallHandler
   ): Observable<Response> {
     return next.handle().pipe(
-      map((data) => ({
-        statusCode: context.switchToHttp().getResponse().statusCode,
-        message: data?.message,
-        data: classToPlain(data),
-      }))
+      map((data) => {
+        if (data.meta) {
+          const dataWithMeta = classToPlain(data);
+          return {
+            statusCode: context.switchToHttp().getResponse().statusCode,
+            message: data?.message,
+            data: dataWithMeta.data,
+            meta: dataWithMeta.meta,
+          };
+        }
+        return {
+          statusCode: context.switchToHttp().getResponse().statusCode,
+          message: data?.message,
+          data: classToPlain(data),
+        };
+      })
     );
   }
 }

@@ -1,3 +1,6 @@
+import { Order } from "@/common/constants/order.constant";
+import { PageOptionsDto } from "@/common/dtos/page-option.dto";
+import { PageEntity } from "@/common/entities/page.entity";
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
@@ -22,9 +25,25 @@ export class ProductsService {
     return new ProductEntity(item);
   }
 
-  async findAll() {
-    const items = await this.productModel.find().exec();
-    return items.map((item) => new ProductEntity(item));
+  async findAll(pageOptionsDto: PageOptionsDto) {
+    const items = await this.productModel
+      .find()
+      .sort({
+        [`${pageOptionsDto.orderBy}`]:
+          pageOptionsDto.order === Order.ASC ? 1 : -1,
+      })
+      .skip(pageOptionsDto.skip)
+      .limit(pageOptionsDto.limit)
+      .exec();
+
+    const data = items.map((item) => new ProductEntity(item));
+    const itemCount = await this.productModel.find().count();
+
+    return new PageEntity({
+      data,
+      itemCount,
+      pageOptionsDto,
+    });
   }
 
   async findOne(id: string) {

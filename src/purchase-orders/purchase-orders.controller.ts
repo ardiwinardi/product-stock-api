@@ -1,7 +1,17 @@
+import { PageOptionsDto } from "@/common/dtos/page-option.dto";
 import { ParseObjectIdPipe } from "@/common/pipes/parse-object-id.pipe";
-import { Body, Controller, Get, Param, Patch, Post } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+} from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { CreatePurchaseOrderDto } from "./dto/create-purchase-order.dto";
+import { FindAllPurchaseOrderDto } from "./dto/find-all-purchase-order.dto";
 import { UpdatePurchaseOrderDto } from "./dto/update-purchase-order.dto";
 import { UpdateStatusPurchaseOrderDto } from "./dto/update-status-purchase-order.dto";
 import { PurchaseOrdersService } from "./purchase-orders.service";
@@ -17,8 +27,14 @@ export class PurchaseOrdersController {
   }
 
   @Get()
-  findAll() {
-    return this.purchaseOrdersService.findAll();
+  findAll(
+    @Query() pageOptionsDto: PageOptionsDto,
+    @Query() findAllPurchaseOrderDto: FindAllPurchaseOrderDto
+  ) {
+    return this.purchaseOrdersService.findAll(
+      pageOptionsDto,
+      findAllPurchaseOrderDto
+    );
   }
 
   @Get(":id")
