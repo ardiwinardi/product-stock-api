@@ -15,7 +15,7 @@ This app demonstrates how to build a Rest APIs using Nest.js, Mongoose, Swagger,
 
 
 ## Next Development
-- Implementation of non HTTP microservices
+- Implementation of non HTTP microservices, (already available [here](https://github.com/ardiwinardi/nestjs-microservices))
 
 
 ## Stacks
